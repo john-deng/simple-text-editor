@@ -39,7 +39,7 @@ public class SimpleTextEditor extends JFrame {
         fileMenu.add(createMenuItem("Open", scaleIcon(new ImageIcon(getResource("img/open.png"))), new Color(70, 70, 70), Color.WHITE, this::openFile));
         fileMenu.add(createMenuItem("Save", scaleIcon(new ImageIcon(getResource("img/save.png"))), new Color(70, 70, 70), Color.WHITE, this::saveFile));
         fileMenu.add(createMenuItem("Save As", null, new Color(70, 70, 70), Color.WHITE, this::saveFile));
-
+        fileMenu.addSeparator(); // 添加分隔线
         // Exit menu item
         fileMenu.add(createMenuItem("Exit", null, new Color(70, 70, 70), Color.WHITE, e -> exitApplication()));
 
@@ -52,8 +52,8 @@ public class SimpleTextEditor extends JFrame {
         menuBar.add(editMenu);
 
         // 添加Edit菜单项
-        menuItemUndo = this.createMenuItem("Undo", null, new Color(70, 70, 70), Color.WHITE, this::undoAction);
-        menuItemRedo = this.createMenuItem("Redo", null, new Color(70, 70, 70), Color.WHITE, this::redoAction);
+        menuItemUndo = this.createMenuItem("Undo", scaleIcon(new ImageIcon(getResource("img/undo.png"))), new Color(70, 70, 70), Color.WHITE, this::undoAction);
+        menuItemRedo = this.createMenuItem("Redo", scaleIcon(new ImageIcon(getResource("img/redo.png"))), new Color(70, 70, 70), Color.WHITE, this::redoAction);
         editMenu.add(menuItemUndo);
         editMenu.add(menuItemRedo);
 
