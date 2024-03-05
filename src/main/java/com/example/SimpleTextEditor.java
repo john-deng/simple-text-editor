@@ -3,8 +3,18 @@ package com.example;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.AffineTransform;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URL;
+import org.apache.batik.transcoder.image.ImageTranscoder;
+import org.apache.batik.transcoder.*;
+import org.apache.batik.transcoder.TranscoderInput;
+import org.apache.batik.transcoder.TranscoderOutput;
+import org.apache.batik.transcoder.SVGAbstractTranscoder;
+import org.apache.batik.anim.dom.SAXSVGDocumentFactory;
+import org.apache.batik.util.XMLResourceDescriptor;
+import org.w3c.dom.svg.SVGDocument;
 
 
 public class SimpleTextEditor extends JFrame {
@@ -14,6 +24,7 @@ public class SimpleTextEditor extends JFrame {
     // 在类的成员变量区域添加
     private JMenuItem menuItemUndo;
     private JMenuItem menuItemRedo;
+    private JMenuItem menuItemDelete;
 
     public SimpleTextEditor() {
         // Set the Nimbus look and feel with dark theme colors
@@ -34,11 +45,14 @@ public class SimpleTextEditor extends JFrame {
         // Create file menu with dark theme style
         JMenu fileMenu = createMenu("File", new Color(70, 70, 70), Color.WHITE);
         menuBar.add(fileMenu);
-        System.out.println(getResource("img/open.png"));
+        System.out.println("show icon path: " + getResource("img/open.png"));
         // Add menu items with scaled icons and dark theme style
-        fileMenu.add(createMenuItem("Open", scaleIcon(new ImageIcon(getResource("img/open.png"))), new Color(70, 70, 70), Color.WHITE, this::openFile));
-        fileMenu.add(createMenuItem("Save", scaleIcon(new ImageIcon(getResource("img/save.png"))), new Color(70, 70, 70), Color.WHITE, this::saveFile));
+        fileMenu.add(createMenuItem("Open", loadSvgIcon("img/open_dark.svg"), new Color(70, 70, 70), Color.WHITE, this::openFile));
+        fileMenu.add(createMenuItem("Save", loadSvgIcon("img/save_dark.svg"), new Color(70, 70, 70), Color.WHITE, this::saveFile));
         fileMenu.add(createMenuItem("Save As", null, new Color(70, 70, 70), Color.WHITE, this::saveFile));
+        fileMenu.addSeparator(); // 添加分隔线
+
+        fileMenu.add(createMenuItem("Reload All from Disk", new ImageIcon(getResource("img/refresh_dark.png")), new Color(70, 70, 70), Color.WHITE, this::reloadAction));
         fileMenu.addSeparator(); // 添加分隔线
         // Exit menu item
         fileMenu.add(createMenuItem("Exit", null, new Color(70, 70, 70), Color.WHITE, e -> exitApplication()));
@@ -52,16 +66,19 @@ public class SimpleTextEditor extends JFrame {
         menuBar.add(editMenu);
 
         // 添加Edit菜单项
-        menuItemUndo = this.createMenuItem("Undo", scaleIcon(new ImageIcon(getResource("img/undo.png"))), new Color(70, 70, 70), Color.WHITE, this::undoAction);
-        menuItemRedo = this.createMenuItem("Redo", scaleIcon(new ImageIcon(getResource("img/redo.png"))), new Color(70, 70, 70), Color.WHITE, this::redoAction);
+       // menuItemUndo = this.createMenuItem("Undo", scaleIcon(new ImageIcon(getResource("img/undo.png"))), new Color(70, 70, 70), Color.WHITE, this::undoAction);
+        menuItemUndo = this.createMenuItem("Undo", loadSvgIcon("img/undo_dark.svg"), new Color(70, 70, 70), Color.WHITE, this::undoAction);
+        menuItemRedo = this.createMenuItem("Redo", loadSvgIcon("img/redo_dark.svg"), new Color(70, 70, 70), Color.WHITE, this::redoAction);
+        menuItemDelete = this.createMenuItem("Delete", null, new Color(70, 70, 70), Color.WHITE, this::deleteAction);
         editMenu.add(menuItemUndo);
         editMenu.add(menuItemRedo);
+        editMenu.add(menuItemDelete);
 
         editMenu.addSeparator(); // 添加分隔线
 
         // 添加其他Edit菜单项，实际的行为（action）需要根据需求实现
-        editMenu.add(this.createMenuItem("Cut", null, new Color(70, 70, 70), Color.WHITE, this::cutAction));
-        editMenu.add(this.createMenuItem("Copy", null, new Color(70, 70, 70), Color.WHITE, this::copyAction));
+        editMenu.add(this.createMenuItem("Cut", loadSvgIcon("img/menu-cut_dark.svg"), new Color(70, 70, 70), Color.WHITE, this::cutAction));
+        editMenu.add(this.createMenuItem("Copy", loadSvgIcon("img/copy_dark.svg"), new Color(70, 70, 70), Color.WHITE, this::copyAction));
         editMenu.add(this.createMenuItem("Paste", null, new Color(70, 70, 70), Color.WHITE, this::pasteAction));
         // 省略添加其他菜单项...
 
@@ -81,6 +98,54 @@ public class SimpleTextEditor extends JFrame {
         Image scaledImg = img.getScaledInstance(16, 16, Image.SCALE_SMOOTH);
         return new ImageIcon(scaledImg);
     }
+
+    private Icon loadSvgIcon(String path) {
+        try {
+            System.out.println("loadSvgIcon path = " + path);
+            String parser = XMLResourceDescriptor.getXMLParserClassName();
+            SAXSVGDocumentFactory f = new SAXSVGDocumentFactory(parser);
+            URL url = getResource(path);
+            SVGDocument doc = f.createSVGDocument(url.toString());
+
+            TranscoderInput input = new TranscoderInput(doc);
+            BufferedImageTranscoder t = new BufferedImageTranscoder();
+
+            t.transcode(input, null);
+            BufferedImage img = t.getBufferedImage();
+            return new ImageIcon(img);
+        } catch (Exception e) {
+            System.out.println("loadSvgIcon e = " + e);
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    static class BufferedImageTranscoder extends ImageTranscoder {
+        private BufferedImage img = null;
+
+        @Override
+        public BufferedImage createImage(int w, int h) {
+            BufferedImage bi = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+            return bi;
+        }
+
+        @Override
+        public void writeImage(BufferedImage img, TranscoderOutput out) {
+            this.img = img;
+        }
+
+        public BufferedImage getBufferedImage() {
+            return img;
+        }
+
+        @Override
+        protected void setImageSize(float width, float height) {
+            if (width > 0 && height > 0) {
+                super.setImageSize(width, height);
+            }
+        }
+    }
+
 
     private void openFile(ActionEvent e) {
         if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
@@ -151,12 +216,23 @@ public class SimpleTextEditor extends JFrame {
 
     // edit menu action
     // 最后，实现这些行为的方法
+    private void reloadAction(ActionEvent e) {
+        // 实现撤销的逻辑
+        System.out.println("e = " + e.toString());
+    }
     private void undoAction(ActionEvent e) {
         // 实现撤销的逻辑
+        System.out.println("e = " + e.toString());
+    }
+
+    private void deleteAction(ActionEvent e) {
+        // 实现重做的逻辑
+        System.out.println("e = " + e.toString());
     }
 
     private void redoAction(ActionEvent e) {
         // 实现重做的逻辑
+        System.out.println("e = " + e.toString());
     }
 
     private void cutAction(ActionEvent e) {

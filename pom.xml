@@ -12,6 +12,34 @@
         <mainClass>com.example.SimpleTextEditor</mainClass>
     </properties>
 
+    <dependencies>
+        <!-- Batik transcoder -->
+        <dependency>
+            <groupId>org.apache.xmlgraphics</groupId>
+            <artifactId>batik-transcoder</artifactId>
+            <version>1.14</version>
+        </dependency>
+        <!-- Batik codec -->
+        <dependency>
+            <groupId>org.apache.xmlgraphics</groupId>
+            <artifactId>batik-codec</artifactId>
+            <version>1.14</version>
+        </dependency>
+        <!-- Batik SVG DOM -->
+        <dependency>
+            <groupId>org.apache.xmlgraphics</groupId>
+            <artifactId>batik-dom</artifactId>
+            <version>1.14</version>
+        </dependency>
+        <!-- Batik bridge -->
+        <dependency>
+            <groupId>org.apache.xmlgraphics</groupId>
+            <artifactId>batik-bridge</artifactId>
+            <version>1.14</version>
+        </dependency>
+    </dependencies>
+
+
     <build>
         <resources>
             <resource>
